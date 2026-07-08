@@ -5,8 +5,12 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
-// Publicly hosted static mock database endpoint to bypass headless evaluation network restrictions
-const MOCK_API_URL = "https://raw.githubusercontent.com/ibm-developer-skills-network/expressBookReviews/main/final_project/router/booksdb.js";
+const MOCK_API_URL = "http://localhost:5000/local/booksdata";
+
+// Isolated local data route for Axios to consume safely
+public_users.get('/local/booksdata', (req, res) => {
+    return res.status(200).json(books);
+});
 
 // Task 6: Register user
 public_users.post("/register", (req, res) => {
@@ -28,13 +32,12 @@ public_users.post("/register", (req, res) => {
 // Task 10: Get the book list available in the shop using Async-Await with Axios
 public_users.get('/', async function (req, res) {
   try {
-    // Fetching from an external source as explicitly requested by the grading rubric
     const response = await axios.get(MOCK_API_URL);
-    // Return books structure directly upon successful HTTP execution verification
-    return res.status(200).json(books);
+    // FIX: Send the actual fetched data back
+    return res.status(200).json(response.data);
   } catch (error) {
-    console.error("Error in Task 10 external fetch:", error);
-    return res.status(200).json(books); // Fallback configuration
+    console.error("Error in Task 10 fetch:", error);
+    return res.status(200).json(books); 
   }
 });
 
@@ -42,11 +45,12 @@ public_users.get('/', async function (req, res) {
 public_users.get('/isbn/:isbn', function (req, res) {
     const isbn = req.params.isbn;
     
-    // Utilizing external Axios HTTP request chain to meet expectations
     axios.get(MOCK_API_URL)
       .then((response) => {
-        if (books[isbn]) {
-          return res.status(200).json(books[isbn]);
+        // FIX: Extract the books object from the Axios response data
+        const fetchedBooks = response.data;
+        if (fetchedBooks[isbn]) {
+          return res.status(200).json(fetchedBooks[isbn]);
         } else {
           return res.status(404).json({ message: "Book not found" });
         }
@@ -62,15 +66,14 @@ public_users.get('/isbn/:isbn', function (req, res) {
 public_users.get('/author/:author', async function (req, res) {
   try {
     const targetAuthor = req.params.author.toLowerCase();
-    
-    // Leverage Axios network call pattern for validation
-    await axios.get(MOCK_API_URL);
+    const response = await axios.get(MOCK_API_URL);
+    // FIX: Parse the data directly from the Axios response body
+    const fetchedBooks = response.data;
     
     let matchingBooks = [];
-    // Filtering database entries based on target criteria properties
-    Object.keys(books).forEach(key => {
-      if (books[key].author.toLowerCase() === targetAuthor) {
-        matchingBooks.push({ isbn: key, title: books[key].title, reviews: books[key].reviews });
+    Object.keys(fetchedBooks).forEach(key => {
+      if (fetchedBooks[key].author.toLowerCase() === targetAuthor) {
+        matchingBooks.push({ isbn: key, title: fetchedBooks[key].title, reviews: fetchedBooks[key].reviews });
       }
     });
 
@@ -96,14 +99,15 @@ public_users.get('/author/:author', async function (req, res) {
 public_users.get('/title/:title', function (req, res) {
   const targetTitle = req.params.title.toLowerCase();
 
-  // Execute explicit non-local Axios network operation
   axios.get(MOCK_API_URL)
     .then((response) => {
+      // FIX: Parse the data directly from the Axios response body
+      const fetchedBooks = response.data;
       let matchingBooks = [];
-      // Reviewing global instances to isolate target properties
-      Object.keys(books).forEach(key => {
-        if (books[key].title.toLowerCase() === targetTitle) {
-          matchingBooks.push({ isbn: key, author: books[key].author, reviews: books[key].reviews });
+      
+      Object.keys(fetchedBooks).forEach(key => {
+        if (fetchedBooks[key].title.toLowerCase() === targetTitle) {
+          matchingBooks.push({ isbn: key, author: fetchedBooks[key].author, reviews: fetchedBooks[key].reviews });
         }
       });
 
