@@ -59,74 +59,74 @@ public_users.get('/isbn/:isbn', function (req, res) {
         return res.status(error.status || 500).json({ message: error.message });
       });
 });
-
+  
 public_users.get('/author/:author', async function (req, res) {
-    try {
-      const targetAuthor = req.params.author.toLowerCase();
-      
-      const fetchBooksByAuthor = () => {
-        return new Promise((resolve, reject) => {
-          const keys = Object.keys(books);
-          let matchingBooks = [];
-  
-          keys.forEach(key => {
-            if (books[key].author.toLowerCase() === targetAuthor) {
-              matchingBooks.push({
-                isbn: key,
-                title: books[key].title,
-                reviews: books[key].reviews
-              });
-            }
-          });
-  
-          if (matchingBooks.length > 0) {
-            resolve(matchingBooks);
-          } else {
-            reject({ status: 404, message: "No books found for this author" });
+  try {
+    const targetAuthor = req.params.author.toLowerCase();
+    
+    const fetchBooksByAuthor = () => {
+      return new Promise((resolve, reject) => {
+        const keys = Object.keys(books);
+        let matchingBooks = [];
+
+        keys.forEach(key => {
+          if (books[key].author.toLowerCase() === targetAuthor) {
+            matchingBooks.push({
+              isbn: key,
+              title: books[key].title,
+              reviews: books[key].reviews
+            });
           }
         });
-      };
-  
-      const records = await fetchBooksByAuthor();
-      return res.status(200).send(JSON.stringify(records, null, 4));
-  
-    } catch (error) {
-      return res.status(error.status || 500).json({ message: error.message || "Error filtering data" });
+
+        if (matchingBooks.length > 0) {
+          resolve(matchingBooks);
+        } else {
+          reject({ status: 404, message: "No books found for this author" });
+        }
+      });
+    };
+
+    const records = await fetchBooksByAuthor();
+    return res.status(200).send(JSON.stringify(records, null, 4));
+
+  } catch (error) {
+    return res.status(error.status || 500).json({ message: error.message || "Error filtering data" });
+  }
+});
+
+public_users.get('/title/:title', function (req, res) {
+  const targetTitle = req.params.title.toLowerCase();
+
+  const fetchBooksByTitle = new Promise((resolve, reject) => {
+    const keys = Object.keys(books);
+    let matchingBooks = [];
+
+    keys.forEach(key => {
+      if (books[key].title.toLowerCase() === targetTitle) {
+        matchingBooks.push({
+          isbn: key,
+          author: books[key].author,
+          reviews: books[key].reviews
+        });
+      }
+    });
+
+    if (matchingBooks.length > 0) {
+      resolve(matchingBooks);
+    } else {
+      reject({ status: 404, message: "No books found with this title" });
     }
   });
 
-public_users.get('/title/:title', function (req, res) {
-    const targetTitle = req.params.title.toLowerCase();
-  
-    const fetchBooksByTitle = new Promise((resolve, reject) => {
-      const keys = Object.keys(books);
-      let matchingBooks = [];
-  
-      keys.forEach(key => {
-        if (books[key].title.toLowerCase() === targetTitle) {
-          matchingBooks.push({
-            isbn: key,
-            author: books[key].author,
-            reviews: books[key].reviews
-          });
-        }
-      });
-  
-      if (matchingBooks.length > 0) {
-        resolve(matchingBooks);
-      } else {
-        reject({ status: 404, message: "No books found with this title" });
-      }
+  fetchBooksByTitle
+    .then((matchingBooks) => {
+      return res.status(200).send(JSON.stringify(matchingBooks, null, 4));
+    })
+    .catch((error) => {
+      return res.status(error.status || 500).json({ message: error.message });
     });
-  
-    fetchBooksByTitle
-      .then((matchingBooks) => {
-        return res.status(200).send(JSON.stringify(matchingBooks, null, 4));
-      })
-      .catch((error) => {
-        return res.status(error.status || 500).json({ message: error.message });
-      });
-  });
+});
 
 public_users.get('/review/:isbn', function (req, res) {
     const isbn = req.params.isbn;
