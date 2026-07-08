@@ -63,28 +63,26 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 });
 
 regd_users.delete("/auth/review/:isbn", (req, res) => {
-  const isbn = req.params.isbn;
-  const username = req.session.authorization ? req.session.authorization['username'] : null;
-
-  if (!username) {
-    return res.status(403).json({ message: "User not authenticated" });
-  }
-
-  if (books[isbn]) {
-    let bookReviews = books[isbn].reviews;
-
-    if (bookReviews && bookReviews[username]) {
-      delete bookReviews[username];
-      return res.status(200).json({ 
-        message: `Reviews for the ISBN ${isbn} posted by the user ${username} have been deleted.` 
-      });
-    } else {
-      return res.status(404).json({ message: `No review found for user ${username} under this ISBN.` });
+    const isbn = req.params.isbn;
+    const username = req.session.authorization ? req.session.authorization['username'] : null;
+  
+    if (!username) {
+      return res.status(403).json({ message: "User not authenticated" });
     }
-  } else {
-    return res.status(404).json({ message: "Book not found" });
-  }
-});
+  
+    if (books[isbn]) {
+      let bookReviews = books[isbn].reviews;
+  
+      if (bookReviews && bookReviews[username]) {
+        delete bookReviews[username];
+        return res.status(200).json({ message: `Review for ISBN ${isbn} deleted` });
+      } else {
+        return res.status(404).json({ message: `No review found for user ${username} under this ISBN.` });
+      }
+    } else {
+      return res.status(404).json({ message: "Book not found" });
+    }
+  });
 
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
