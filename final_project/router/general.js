@@ -33,7 +33,8 @@ public_users.get('/', async function (req, res) {
     const response = await axios.get('http://localhost:5000/local/booksdata');
     return res.status(200).json(response.data);
   } catch (error) {
-    return res.status(200).json(books); // High-performance fallback
+    console.error("Error fetching book list via Axios:", error); // Robust debugging log
+    return res.status(200).json(books); 
   }
 });
 
@@ -51,6 +52,7 @@ public_users.get('/isbn/:isbn', function (req, res) {
         }
       })
       .catch((error) => {
+        console.error(`Error fetching ISBN ${isbn} via Axios:`, error); // Robust debugging log
         if (books[isbn]) return res.status(200).json(books[isbn]);
         return res.status(500).json({ message: "Error fetching book details" });
       });
@@ -76,6 +78,7 @@ public_users.get('/author/:author', async function (req, res) {
       return res.status(404).json({ message: "No books found for this author" });
     }
   } catch (error) {
+    console.error("Error fetching author data via Axios:", error); // Robust debugging log
     const targetAuthor = req.params.author.toLowerCase();
     let matchingBooks = [];
     Object.keys(books).forEach(key => {
@@ -109,6 +112,7 @@ public_users.get('/title/:title', function (req, res) {
       }
     })
     .catch((error) => {
+        console.error("Error fetching title data via Axios:", error); // Robust debugging log
         let matchingBooks = [];
         Object.keys(books).forEach(key => {
           if (books[key].title.toLowerCase() === targetTitle) {
